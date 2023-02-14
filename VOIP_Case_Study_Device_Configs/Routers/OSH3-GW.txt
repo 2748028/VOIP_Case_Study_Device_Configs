@@ -1,0 +1,144 @@
+hostname OSH3-GW
+!
+Interface gigabitethernet 0/1
+no shutdown
+interface GigabitEthernet0/1.40
+encapsulation dot1Q 40
+ ip address 172.3.0.1 255.255.255.0
+interface GigabitEthernet0/1.50
+ encapsulation dot1Q 50
+  ip address 172.3.1.1 255.255.255.0
+interface GigabitEthernet0/1.60
+encapsulation dot1Q 60
+ ip address 172.3.2.1 255.255.255.0
+!
+interface gigabitethernet 0/0
+ip address 203.0.113.23 255.255.255.0
+no shutdown
+!
+router eigrp 174
+ router-id 203.0.113.1
+ no auto-summary
+ network 10.3.0.0
+ network 172.3.0.0
+ network 203.0.113.0
+ ip route 0.0.0.0 0.0.0.0 203.0.113.100
+no shutdown
+!
+ip dhcp pool VoIP
+ network 172.3.0.0 255.255.255.0
+ default-router 172.3.0.1
+ option 150 ip 172.3.2.1
+!
+ip dhcp pool Data
+ network 172.3.1.0 255.255.255.0
+ default-router 172.3.1.1
+!
+ip dhcp excluded-address 172.3.0.1 172.3.0.20
+ip dhcp excluded-address 172.3.1.1 172.3.1.20
+ip dhcp excluded-address 172.3.2.1 172.3.2.20
+!
+ip domain-name tle.ca
+ip domain-lookup
+!
+ntp server 203.0.113.100
+clock timezone EST -5
+clock summer-time zone recurring 
+!
+ip host TOR3-GW 203.0.113.13
+ip host TOR3-DSW 10.3.2.2
+ip name-server 203.0.113.100
+!
+telephony-service
+ !
+ dial-peer voice 1 voip
+ destination-pattern 23[0-9][0-9]
+ session-target 203.0.113.23
+ description Catch-all for Toronto VoIP end-points.
+ !
+ dial-peer voice 2 pots
+ destination-pattern 3331
+ port 0/3/0
+ description Research - Analog Phone
+ corlist outgoing Employee
+ !
+ dial-peer voice 3 voip
+ destination-pattern 3311
+ session-target RAS
+ description Mark - Sales - Oshawa IP Phone 1 Button 1
+ cor incoming Sales
+ !
+ dial-peer voice 4 voip
+ destination-pattern 3301
+ session-target RAS
+ description John - IT Services - Oshawa IP Phone 2 Button 1 (logged in)
+ cor incoming Employee
+ !
+ dial-peer voice 5 voip
+ destination-pattern 3314
+ session-target RAS
+ description Adam IT Services - Oshawa IP Phone 2 Button 1 (logged in)
+ cor incoming Employee
+ !
+ dial-peer voice 6 voip
+ destination-pattern 3300
+ session-target RAS
+ description HelpDesk - Oshawa IP Phone 2 Button 1 (logged out)
+ cor incoming Employee
+ !
+ dial-peer voice 7 voip
+ destination-pattern 3399
+ session-target RAS
+ description Guest - Lobby - Oshawa IP Phone 3 Button 1 (model 7821)
+ cor incoming 911
+ exit
+!
+dial-peer cor custom 
+ name 911
+ name local
+ name long_distance
+ name international
+ name 900
+ exit
+!
+dial-peer cor list call911
+ member 911
+ exit
+dial-peer cor list callLocal
+ member local
+ exit
+dial-peer cor list callLD
+ member long_distance
+ exit
+dial-peer cor list callInt
+ member long_distance
+ exit
+dial-peer cor list call900
+ member 900
+ exit
+!
+dial-peer cor list Lobby
+ member 911
+ exit
+dial-peer cor list Employee
+ member 911
+ member local
+ member long_distance
+ exit
+dial-peer cor list Sales
+ member 911
+ member local
+ member long_distance
+ member international 
+ exit
+dial-peer cor list Executive
+ member 911
+ member local
+ member long_distance
+ member international
+ exit
+!
+
+!#to be added later#!ip host ASW3 10.3.2.3
+!# ip host OSH3-GW 203.0.113.23 
+!# ip host OSH3-DSW 172.3.2.2

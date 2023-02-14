@@ -1,0 +1,15 @@
+hostname ASW3
+!
+vlan 40
+name O_VOICE
+vlan 50
+name O_DATA
+vlan 60
+name O_MANAGEMENT
+!
+int g0/13
+switchport mode trunk
+switchport trunk allowed vlan 40,50,60
+no shutdown
+!
+ip name-server 172.3.2.1
